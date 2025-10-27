@@ -1,0 +1,113 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap');
+
+body {
+  margin: 0;
+  height: 100vh;
+  background: radial-gradient(circle at center, #0b0f1a, #000);
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  overflow: hidden;
+}
+
+/* 🌠 Fondo animado tipo galaxia */
+body::before {
+  content: "";
+  position: absolute;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255,255,255,0.2) 1px, transparent 1px),
+              radial-gradient(circle, rgba(255,255,255,0.1) 1px, transparent 1px);
+  background-position: 0 0, 50px 50px;
+  background-size: 100px 100px;
+  animation: moveStars 60s linear infinite;
+  z-index: 0;
+  opacity: 0.5;
+}
+
+@keyframes moveStars {
+  from { transform: translateY(0); }
+  to { transform: translateY(-100px); }
+}
+
+/* 🔒 Caja de login */
+.login-box {
+  position: relative;
+  z-index: 1;
+  background: rgba(30, 30, 40, 0.85);
+  border: 2px solid #ffcc00;
+  border-radius: 20px;
+  padding: 40px 30px;
+  width: 350px;
+  box-shadow: 0 0 25px rgba(255, 204, 0, 0.3);
+  text-align: center;
+}
+
+h1 {
+  font-weight: 600;
+  color: #ffd700;
+  text-shadow: 0 0 10px #ffb300;
+  margin-bottom: 25px;
+}
+
+/* ✉️ Inputs */
+input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 18px;
+  border: none;
+  outline: none;
+  border-radius: 10px;
+  font-size: 15px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.1);
+  box-shadow: inset 0 0 8px rgba(255, 255, 255, 0.1);
+  transition: all 0.2s;
+}
+
+input::placeholder {
+  color: #bbb;
+}
+
+input:focus {
+  box-shadow: 0 0 8px #ffd700;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ⚡ Botón */
+button {
+  width: 100%;
+  padding: 12px;
+  border: none;
+  border-radius: 10px;
+  font-weight: bold;
+  color: #000;
+  font-size: 16px;
+  background: linear-gradient(90deg, #ffd700, #ffb300);
+  box-shadow: 0 0 12px rgba(255, 204, 0, 0.6);
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+button:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 20px #ffd700;
+}
+
+/* Mensaje */
+#msg {
+  margin-top: 15px;
+  color: #ffcc00;
+  font-size: 14px;
+  min-height: 18px;
+}
+
+/* Contenedor central */
+.container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}

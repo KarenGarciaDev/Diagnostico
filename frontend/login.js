@@ -25,7 +25,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
       msg.textContent = "✅ Sesión iniciada correctamente";
 
       // Redirige a la Pokédex
-      window.location.href = "pokedex.html";
+      window.location.href = "app.html";
     } else {
       msg.textContent = "❌ Error: " + (data.error?.message || "Credenciales incorrectas");
     }
