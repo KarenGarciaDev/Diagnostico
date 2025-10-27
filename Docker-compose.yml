@@ -1,0 +1,18 @@
+services:
+  cms:
+    build: ./backend
+    container_name: diagnostico-cms
+    ports:
+      - "1337:1337"
+    volumes:
+      - ./backend/data:/app/.tmp
+    restart: unless-stopped
+
+  web:
+    build: ./frontend
+    container_name: diagnostico-web
+    ports:
+      - "8080:80"
+    depends_on:
+      - cms
+    restart: unless-stopped

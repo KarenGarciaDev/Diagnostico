@@ -1,0 +1,113 @@
+body {
+  background: radial-gradient(circle at center, #10121a, #000);
+  color: white;
+  font-family: 'Poppins', sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  margin: 0;
+  overflow: hidden;
+}
+
+#results {
+  flex: 1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 30px;
+  padding: 30px;
+  overflow-y: auto;
+  justify-items: center;
+  align-items: start;
+}
+
+/* ✨ Tarjeta Pokémon */
+.card {
+  position: relative;
+  background: linear-gradient(180deg, #1e1e1e, #0d0d0d);
+  border-radius: 20px;
+  padding: 20px;
+  width: 280px;
+  height: 400px;
+  text-align: center;
+  box-shadow: 0 0 15px rgba(255, 215, 0, 0.3);
+  transition: all 0.3s ease-in-out;
+  overflow: hidden;
+}
+
+.card:hover {
+  transform: scale(1.05);
+  box-shadow: 0 0 25px rgba(255, 215, 0, 0.6);
+}
+
+/* Brillo dinámico tipo carta EX */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.15) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.card:hover::before {
+  opacity: 0.5;
+}
+
+/* Imagen del Pokémon */
+.card img {
+  width: 150px;
+  height: 150px;
+  object-fit: contain;
+  margin-top: 15px;
+  filter: drop-shadow(0 0 10px rgba(255, 255, 255, 0.4));
+  transition: transform 0.3s ease;
+}
+
+.card:hover img {
+  transform: scale(1.1);
+}
+
+/* Nombre del Pokémon */
+.card h3 {
+  color: #ffd700;
+  font-weight: bold;
+  font-size: 1.3em;
+  margin: 15px 0 10px 0;
+  text-shadow: 0 0 8px #ffb300;
+}
+
+/* Texto de estadísticas */
+.card p {
+  color: #ccc;
+  font-size: 14px;
+  margin: 5px 0;
+  line-height: 1.4em;
+}
+
+/* Buscador fijo */
+#search {
+  position: fixed;
+  bottom: 15px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 300px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+  text-align: center;
+  outline: none;
+  background-color: #fff;
+  color: #000;
+  box-shadow: 0 0 15px rgba(255, 255, 0, 0.4);
+  transition: all 0.3s;
+}
+
+#search:focus {
+  box-shadow: 0 0 25px rgba(255, 255, 0, 0.8);
+}
