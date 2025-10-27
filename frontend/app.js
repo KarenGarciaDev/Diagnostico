@@ -6,7 +6,7 @@ const resultsDiv = document.getElementById("results");
 const STRAPI_URL = "http://localhost:1337";
 
 // ===============================
-// Cargar Pokémon iniciales al abrir
+// Cargar Pokémon iniciales
 // ===============================
 window.addEventListener("load", async () => {
   await loadInitialPokemons();
@@ -75,8 +75,8 @@ async function searchPokemon(name) {
 // ===============================
 async function saveHistorial(name) {
   try {
-    const jwt = localStorage.getItem("jwt"); // Token del login
-    const user = JSON.parse(localStorage.getItem("user")); // Usuario autenticado
+    const jwt = localStorage.getItem("jwt");
+    const user = JSON.parse(localStorage.getItem("user"));
 
     if (!jwt || !user) {
       console.warn("⚠️ No hay sesión activa. No se puede guardar historial.");
@@ -85,32 +85,23 @@ async function saveHistorial(name) {
 
     const bodyData = {
       data: {
-        busqueda: name,
-        fecha: new Date().toISOString(),
-        usuario: user.id // 👈 Relación con el usuario autenticado
+        Busqueda: name,
+        Fecha: new Date().toISOString(),
+        Usuario: user.username || user.email
       }
     };
-
-    console.log("📤 Enviando historial a Strapi:", bodyData);
 
     const response = await fetch(`${STRAPI_URL}/api/historials`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwt}` // ✅ Se envía el JWT
+        "Authorization": `Bearer ${jwt}`
       },
       body: JSON.stringify(bodyData)
     });
 
-    const text = await response.text();
-    console.log("📥 Respuesta de Strapi:", response.status, text);
-
-    if (response.ok) {
-      console.log("✅ Historial guardado correctamente!");
-    } else {
-      console.error("❌ Error al guardar historial:", response.status, text);
-    }
-
+    const result = await response.json();
+    console.log("✅ Historial guardado:", result);
   } catch (error) {
     console.error("⚠️ Error en saveHistorial:", error);
   }
@@ -133,7 +124,7 @@ function renderCard(data) {
 }
 
 // ===============================
-// Evento input (búsqueda dinámica)
+// Evento de búsqueda
 // ===============================
 input.addEventListener("input", (e) => {
   const value = e.target.value;
