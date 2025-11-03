@@ -6,7 +6,7 @@ const resultsDiv = document.getElementById("results");
 const STRAPI_URL = "http://localhost:1337";
 
 // ===============================
-// Cargar Pokémon iniciales
+// Load starter Pokémon
 // ===============================
 window.addEventListener("load", async () => {
   await loadInitialPokemons();
@@ -30,7 +30,7 @@ async function loadInitialPokemons() {
 }
 
 // ===============================
-// Buscar Pokémon dinámicamente
+// Search Pokémon dynamically
 // ===============================
 async function searchPokemon(name) {
   name = name.trim().toLowerCase();
@@ -40,7 +40,7 @@ async function searchPokemon(name) {
     return;
   }
 
-  resultsDiv.innerHTML = "<p>Buscando...</p>";
+  resultsDiv.innerHTML = "<p>Searching...</p>";
 
   try {
     const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=1000`);
@@ -49,7 +49,7 @@ async function searchPokemon(name) {
     const filtered = data.results.filter(p => p.name.includes(name));
 
     if (filtered.length === 0) {
-      resultsDiv.innerHTML = "<p>No se encontraron resultados 😢</p>";
+      resultsDiv.innerHTML = "<p>No results found. 😢</p>";
       return;
     }
 
@@ -65,13 +65,13 @@ async function searchPokemon(name) {
     await saveHistorial(name);
 
   } catch (error) {
-    console.error("❌ Error al buscar Pokémon:", error);
-    resultsDiv.innerHTML = "<p>Error al buscar el Pokémon 😢</p>";
+    console.error("❌ Error searching for Pokemon", error);
+    resultsDiv.innerHTML = "<p>Error searching for Pokemon 😢</p>";
   }
 }
 
 // ===============================
-// Guardar búsqueda en Strapi
+// Save search in Strapi
 // ===============================
 async function saveHistorial(name) {
   try {
@@ -79,7 +79,7 @@ async function saveHistorial(name) {
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!jwt || !user) {
-      console.warn("⚠️ No hay sesión activa. No se puede guardar historial.");
+      console.warn("⚠️ No active session. Unable to save history.");
       return;
     }
 
@@ -101,30 +101,30 @@ async function saveHistorial(name) {
     });
 
     const result = await response.json();
-    console.log("✅ Historial guardado:", result);
+    console.log("✅ History saved:", result);
   } catch (error) {
-    console.error("⚠️ Error en saveHistorial:", error);
+    console.error("⚠️ Error in saveHistorial:", error);
   }
 }
 
 // ===============================
-// Renderizar tarjeta Pokémon
+// Render Pokemon card
 // ===============================
 function renderCard(data) {
   return `
     <div class="card">
       <img src="${data.sprites.front_default}" alt="${data.name}" />
       <h3>${data.name.toUpperCase()}</h3>
-      <p><b>Altura:</b> ${(data.height / 10).toFixed(1)} m</p>
-      <p><b>Peso:</b> ${(data.weight / 10).toFixed(1)} kg</p>
-      <p><b>Tipo:</b> ${data.types.map(t => t.type.name).join(", ")}</p>
-      <p><b>Habilidad:</b> ${data.abilities.map(a => a.ability.name).join(", ")}</p>
+      <p><b>Height:</b> ${(data.height / 10).toFixed(1)} m</p>
+      <p><b>Weight:</b> ${(data.weight / 10).toFixed(1)} kg</p>
+      <p><b>Type:</b> ${data.types.map(t => t.type.name).join(", ")}</p>
+      <p><b>Ability:</b> ${data.abilities.map(a => a.ability.name).join(", ")}</p>
     </div>
   `;
 }
 
 // ===============================
-// Evento de búsqueda
+// Search event
 // ===============================
 input.addEventListener("input", (e) => {
   const value = e.target.value;

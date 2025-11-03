@@ -7,7 +7,7 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
   const password = document.getElementById("password").value.trim();
   const msg = document.getElementById("msg");
 
-  msg.textContent = "Iniciando sesión...";
+  msg.textContent = "Logging in…";
 
   try {
     const res = await fetch(`${STRAPI_URL}/api/auth/local`, {
@@ -19,18 +19,18 @@ document.getElementById("loginForm").addEventListener("submit", async (e) => {
     const data = await res.json();
 
     if (res.ok) {
-      // Guarda el token y el usuario
+      // Store the token and user
       localStorage.setItem("jwt", data.jwt);
       localStorage.setItem("user", JSON.stringify(data.user));
-      msg.textContent = "✅ Sesión iniciada correctamente";
+      msg.textContent = "✅ Session started successfully";
 
-      // Redirige a la Pokédex
+      // Redirecting to the Pokédex
       window.location.href = "app.html";
     } else {
-      msg.textContent = "❌ Error: " + (data.error?.message || "Credenciales incorrectas");
+      msg.textContent = "❌ Error: " + (data.error?.message || "Invalid credentials");
     }
   } catch (err) {
-    msg.textContent = "⚠️ Error de conexión con el servidor.";
+    msg.textContent = "⚠️ Connection error with the server.";
     console.error(err);
   }
 });
