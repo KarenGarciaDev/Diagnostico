@@ -1,0 +1,139 @@
+name: Deploy to AWS Fargate (ECR + ECS)
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    env:
+      AWS_REGION: us-east-1
+      CLUSTER_NAME: diagnostico-cluster
+      SERVICE_NAME: diagnostico-service
+      TASK_FAMILY: diagnostico-task
+      ECR_REPO_CMS: diagnostico-cms
+      ECR_REPO_WEB: diagnostico-web
+      IMAGE_TAG: latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-session-token: ${{ secrets.AWS_SESSION_TOKEN }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Login to ECR
+        id: ecr-login
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Ensure ECR repos exist
+        run: |
+          aws ecr create-repository --repository-name $ECR_REPO_CMS  --region $AWS_REGION || true
+          aws ecr create-repository --repository-name $ECR_REPO_WEB  --region $AWS_REGION || true
+
+      - name: Build and push Docker images
+        run: |
+          # Tags
+          REGISTRY=${{ steps.ecr-login.outputs.registry }}
+          CMS_IMAGE=$REGISTRY/$ECR_REPO_CMS:$IMAGE_TAG
+          WEB_IMAGE=$REGISTRY/$ECR_REPO_WEB:$IMAGE_TAG
+
+          # Build
+          docker build -t $CMS_IMAGE ./backend
+          docker build -t $WEB_IMAGE ./frontend
+
+          # Push
+          docker push $CMS_IMAGE
+          docker push $WEB_IMAGE
+
+          # Export names for later steps
+          echo "::set-output name=cms_image::$CMS_IMAGE"
+          echo "::set-output name=web_image::$WEB_IMAGE"
+        id: build-and-push
+
+      - name: Register or update ECS task definition
+        run: |
+          REGISTRY=${{ steps.ecr-login.outputs.registry }}
+          CMS_IMAGE=${{ steps.build-and-push.outputs.cms_image }}
+          WEB_IMAGE=${{ steps.build-and-push.outputs.web_image }}
+
+          cat > taskdef.json <<TASKDEF
+{
+  "family": "${{ env.TASK_FAMILY }}",
+  "networkMode": "awsvpc",
+  "requiresCompatibilities": ["FARGATE"],
+  "cpu": "1024",
+  "memory": "2048",
+  "executionRoleArn": "",
+  "taskRoleArn": "",
+  "containerDefinitions": [
+    {
+      "name": "diagnostico-cms",
+      "image": "${CMS_IMAGE}",
+      "essential": true,
+      "portMappings": [{"containerPort":1337,"protocol":"tcp"}],
+      "environment": [
+        {"name":"NODE_ENV","value":"production"}
+        /* Agrega aquí variables env necesarias */
+      ],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/${{ env.TASK_FAMILY }}",
+          "awslogs-region": "${{ env.AWS_REGION }}",
+          "awslogs-stream-prefix": "cms"
+        }
+      }
+    },
+    {
+      "name": "diagnostico-web",
+      "image": "${WEB_IMAGE}",
+      "essential": true,
+      "portMappings": [{"containerPort":80,"protocol":"tcp"}],
+      "environment": [],
+      "logConfiguration": {
+        "logDriver": "awslogs",
+        "options": {
+          "awslogs-group": "/ecs/${{ env.TASK_FAMILY }}",
+          "awslogs-region": "${{ env.AWS_REGION }}",
+          "awslogs-stream-prefix": "web"
+        }
+      }
+    }
+  ]
+}
+TASKDEF
+
+          echo "Registering task definition..."
+          aws ecs register-task-definition --cli-input-json file://taskdef.json
+
+      - name: Create ECS cluster if not exists
+        run: |
+          aws ecs describe-clusters --clusters $CLUSTER_NAME --region $AWS_REGION --query "clusters[0].status" || \
+            aws ecs create-cluster --cluster-name $CLUSTER_NAME --region $AWS_REGION
+
+      - name: Ensure ECS service exists (creates service without ALB)
+        run: |
+          # This creates a service that runs tasks in Fargate. If you want an ALB / public URL,
+          # you should create an ALB + target group and attach it to the service manually in the console,
+          # or modify this step to include loadBalancers config.
+          COUNT=$(aws ecs describe-services --cluster $CLUSTER_NAME --services $SERVICE_NAME --region $AWS_REGION --query "services[0].status" --output text 2>/dev/null || echo "")
+          if [ -z "$COUNT" ]; then
+            aws ecs create-service \
+              --cluster $CLUSTER_NAME \
+              --service-name $SERVICE_NAME \
+              --task-definition $TASK_FAMILY \
+              --desired-count 1 \
+              --launch-type FARGATE \
+              --network-configuration "awsvpcConfiguration={subnets=[subnet-xxxxxxxx,subnet-yyyyyyyy],securityGroups=[sg-xxxxxxxx],assignPublicIp=ENABLED}" \
+              --region $AWS_REGION
+          else
+            aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment --region $AWS_REGION
+          fi
