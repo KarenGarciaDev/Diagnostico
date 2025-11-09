@@ -132,7 +132,7 @@ TASKDEF
               --task-definition $TASK_FAMILY \
               --desired-count 1 \
               --launch-type FARGATE \
-              --network-configuration "awsvpcConfiguration={subnets=[subnet-xxxxxxxx,subnet-yyyyyyyy],securityGroups=[sg-xxxxxxxx],assignPublicIp=ENABLED}" \
+              --network-configuration "awsvpcConfiguration={subnets=[subnet-061e41826c8e646a2,subnet-0f85e21e711e3a2d8],securityGroups=[sg-0111d7142721b253b],assignPublicIp=ENABLED}"\
               --region $AWS_REGION
           else
             aws ecs update-service --cluster $CLUSTER_NAME --service $SERVICE_NAME --force-new-deployment --region $AWS_REGION
