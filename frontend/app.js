@@ -3,7 +3,7 @@
 // ===============================
 const input = document.getElementById("search");
 const resultsDiv = document.getElementById("results");
-const STRAPI_URL = "http://54.236.25.34:1337";
+const STRAPI_URL = "http://54.224.55.129:1337";
 
 // ===============================
 // Load starter Pokémon
