@@ -1,4 +1,24 @@
-const STRAPI_URL = "http://54.224.55.129:1337";
+const getStrapiURL = () => {
+  
+  if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_STRAPI_URL) {
+    return import.meta.env.VITE_STRAPI_URL;
+  }
+
+ 
+  if (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  ) {
+    return "http://localhost:1337";
+  }
+
+  
+  return `${window.location.protocol}//${window.location.hostname}:1337`;
+};
+
+const STRAPI_URL = getStrapiURL();
+
+console.log("🌐 Connecting to Strapi at:", STRAPI_URL);
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
