@@ -58,58 +58,54 @@ jobs:
           echo "::set-output name=web_image::$WEB_IMAGE"
         id: build-and-push
 
-      - name: Register or update ECS task definition
+            - name: Register or update ECS task definition
         run: |
           REGISTRY=${{ steps.ecr-login.outputs.registry }}
           CMS_IMAGE=${{ steps.build-and-push.outputs.cms_image }}
           WEB_IMAGE=${{ steps.build-and-push.outputs.web_image }}
 
-          cat > taskdef.json <<TASKDEF
-{
-  "family": "${{ env.TASK_FAMILY }}",
-  "networkMode": "awsvpc",
-  "requiresCompatibilities": ["FARGATE"],
-  "cpu": "1024",
-  "memory": "2048",
-  "executionRoleArn": "",
-  "taskRoleArn": "",
-  "containerDefinitions": [
-    {
-      "name": "diagnostico-cms",
-      "image": "${CMS_IMAGE}",
-      "essential": true,
-      "portMappings": [{"containerPort":1337,"protocol":"tcp"}],
-      "environment": [
-        {"name":"NODE_ENV","value":"production"}
-        /* Agrega aquí variables env necesarias */
-      ],
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/${{ env.TASK_FAMILY }}",
-          "awslogs-region": "${{ env.AWS_REGION }}",
-          "awslogs-stream-prefix": "cms"
-        }
-      }
-    },
-    {
-      "name": "diagnostico-web",
-      "image": "${WEB_IMAGE}",
-      "essential": true,
-      "portMappings": [{"containerPort":80,"protocol":"tcp"}],
-      "environment": [],
-      "logConfiguration": {
-        "logDriver": "awslogs",
-        "options": {
-          "awslogs-group": "/ecs/${{ env.TASK_FAMILY }}",
-          "awslogs-region": "${{ env.AWS_REGION }}",
-          "awslogs-stream-prefix": "web"
-        }
-      }
-    }
-  ]
-}
-TASKDEF
+          echo '{
+            "family": "'"${TASK_FAMILY}"'",
+            "networkMode": "awsvpc",
+            "requiresCompatibilities": ["FARGATE"],
+            "cpu": "1024",
+            "memory": "2048",
+            "executionRoleArn": "",
+            "taskRoleArn": "",
+            "containerDefinitions": [
+              {
+                "name": "diagnostico-cms",
+                "image": "'"${CMS_IMAGE}"'",
+                "essential": true,
+                "portMappings": [{"containerPort":1337,"protocol":"tcp"}],
+                "environment": [
+                  {"name":"NODE_ENV","value":"production"}
+                ],
+                "logConfiguration": {
+                  "logDriver": "awslogs",
+                  "options": {
+                    "awslogs-group": "/ecs/'"${TASK_FAMILY}"'",
+                    "awslogs-region": "'"${AWS_REGION}"'",
+                    "awslogs-stream-prefix": "cms"
+                  }
+                }
+              },
+              {
+                "name": "diagnostico-web",
+                "image": "'"${WEB_IMAGE}"'",
+                "essential": true,
+                "portMappings": [{"containerPort":80,"protocol":"tcp"}],
+                "logConfiguration": {
+                  "logDriver": "awslogs",
+                  "options": {
+                    "awslogs-group": "/ecs/'"${TASK_FAMILY}"'",
+                    "awslogs-region": "'"${AWS_REGION}"'",
+                    "awslogs-stream-prefix": "web"
+                  }
+                }
+              }
+            ]
+          }' > taskdef.json
 
           echo "Registering task definition..."
           aws ecs register-task-definition --cli-input-json file://taskdef.json
