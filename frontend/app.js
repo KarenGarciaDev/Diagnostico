@@ -1,12 +1,17 @@
 // ===============================
-// Configuración inicial
+// Initial Configuration
 // ===============================
 const input = document.getElementById("search");
 const resultsDiv = document.getElementById("results");
-const STRAPI_URL = "http://54.224.55.129:1337";
+
+// Automatically detect backend URL
+const STRAPI_URL =
+  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
+    ? "http://localhost:1337" // Local environment
+    : `${window.location.protocol}//${window.location.hostname}:1337`; // AWS or any public domain
 
 // ===============================
-// Load starter Pokémon
+// Load Starter Pokémon
 // ===============================
 window.addEventListener("load", async () => {
   await loadInitialPokemons();
@@ -24,13 +29,13 @@ async function loadInitialPokemons() {
       resultsDiv.innerHTML += renderCard(pokeData);
     }
   } catch (err) {
-    console.error("❌ Error al cargar los Pokémon iniciales:", err);
-    resultsDiv.innerHTML = "<p>Error al cargar los Pokémon 😢</p>";
+    console.error("❌ Error loading initial Pokémon:", err);
+    resultsDiv.innerHTML = "<p>Error loading Pokémon 😢</p>";
   }
 }
 
 // ===============================
-// Search Pokémon dynamically
+// Dynamic Pokémon Search
 // ===============================
 async function searchPokemon(name) {
   name = name.trim().toLowerCase();
@@ -49,7 +54,7 @@ async function searchPokemon(name) {
     const filtered = data.results.filter(p => p.name.includes(name));
 
     if (filtered.length === 0) {
-      resultsDiv.innerHTML = "<p>No results found. 😢</p>";
+      resultsDiv.innerHTML = "<p>No results found 😢</p>";
       return;
     }
 
@@ -61,19 +66,19 @@ async function searchPokemon(name) {
       resultsDiv.innerHTML += renderCard(pokeData);
     }
 
-    // Guardar búsqueda en Strapi
-    await saveHistorial(name);
+    // Save search in Strapi
+    await saveHistory(name);
 
   } catch (error) {
-    console.error("❌ Error searching for Pokemon", error);
-    resultsDiv.innerHTML = "<p>Error searching for Pokemon 😢</p>";
+    console.error("❌ Error searching Pokémon:", error);
+    resultsDiv.innerHTML = "<p>Error searching Pokémon 😢</p>";
   }
 }
 
 // ===============================
-// Save search in Strapi
+// Save Search in Strapi
 // ===============================
-async function saveHistorial(name) {
+async function saveHistory(name) {
   try {
     const jwt = localStorage.getItem("jwt");
     const user = JSON.parse(localStorage.getItem("user"));
@@ -85,9 +90,9 @@ async function saveHistorial(name) {
 
     const bodyData = {
       data: {
-        Busqueda: name,
-        Fecha: new Date().toISOString(),
-        Usuario: user.username || user.email
+        Search: name,
+        Date: new Date().toISOString(),
+        User: user.username || user.email
       }
     };
 
@@ -103,12 +108,12 @@ async function saveHistorial(name) {
     const result = await response.json();
     console.log("✅ History saved:", result);
   } catch (error) {
-    console.error("⚠️ Error in saveHistorial:", error);
+    console.error("⚠️ Error saving history:", error);
   }
 }
 
 // ===============================
-// Render Pokemon card
+// Render Pokémon Card
 // ===============================
 function renderCard(data) {
   return `
@@ -124,7 +129,7 @@ function renderCard(data) {
 }
 
 // ===============================
-// Search event
+// Search Event Listener
 // ===============================
 input.addEventListener("input", (e) => {
   const value = e.target.value;
