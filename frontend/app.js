@@ -4,14 +4,26 @@
 const input = document.getElementById("search");
 const resultsDiv = document.getElementById("results");
 
-// Automatically detect backend URL
-const STRAPI_URL =
-  window.location.hostname === "localhost" || window.location.hostname === "127.0.0.1"
-    ? "http://localhost:1337" // Local environment
-    : `${window.location.protocol}//${window.location.hostname}:1337`; // AWS or any public domain
+// Detect the correct Strapi URL automatically
+const getStrapiURL = () => {
+  // Local environment (for testing)
+  if (
+    window.location.hostname === "localhost" ||
+    window.location.hostname === "127.0.0.1"
+  ) {
+    return "http://localhost:1337";
+  }
+
+  // Production (ECS / ALB / any domain)
+  return `${window.location.protocol}//${window.location.hostname}:1337`;
+};
+
+const STRAPI_URL = getStrapiURL();
+
+console.log("🌐 Connecting to Strapi at:", STRAPI_URL);
 
 // ===============================
-// Load Starter Pokémon
+// Load starter Pokémon
 // ===============================
 window.addEventListener("load", async () => {
   await loadInitialPokemons();
@@ -35,7 +47,7 @@ async function loadInitialPokemons() {
 }
 
 // ===============================
-// Dynamic Pokémon Search
+// Search Pokémon dynamically
 // ===============================
 async function searchPokemon(name) {
   name = name.trim().toLowerCase();
@@ -48,10 +60,10 @@ async function searchPokemon(name) {
   resultsDiv.innerHTML = "<p>Searching...</p>";
 
   try {
-    const response = await fetch(`https://pokeapi.co/api/v2/pokemon?limit=1000`);
+    const response = await fetch("https://pokeapi.co/api/v2/pokemon?limit=1000");
     const data = await response.json();
 
-    const filtered = data.results.filter(p => p.name.includes(name));
+    const filtered = data.results.filter((p) => p.name.includes(name));
 
     if (filtered.length === 0) {
       resultsDiv.innerHTML = "<p>No results found 😢</p>";
@@ -67,8 +79,7 @@ async function searchPokemon(name) {
     }
 
     // Save search in Strapi
-    await saveHistory(name);
-
+    await saveHistorial(name);
   } catch (error) {
     console.error("❌ Error searching Pokémon:", error);
     resultsDiv.innerHTML = "<p>Error searching Pokémon 😢</p>";
@@ -76,44 +87,44 @@ async function searchPokemon(name) {
 }
 
 // ===============================
-// Save Search in Strapi
+// Save search in Strapi
 // ===============================
-async function saveHistory(name) {
+async function saveHistorial(name) {
   try {
     const jwt = localStorage.getItem("jwt");
     const user = JSON.parse(localStorage.getItem("user"));
 
     if (!jwt || !user) {
-      console.warn("⚠️ No active session. Unable to save history.");
+      console.warn("⚠️ No active session. Cannot save search history.");
       return;
     }
 
     const bodyData = {
       data: {
-        Search: name,
-        Date: new Date().toISOString(),
-        User: user.username || user.email
-      }
+        Busqueda: name,
+        Fecha: new Date().toISOString(),
+        Usuario: user.username || user.email,
+      },
     };
 
     const response = await fetch(`${STRAPI_URL}/api/historials`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": `Bearer ${jwt}`
+        Authorization: `Bearer ${jwt}`,
       },
-      body: JSON.stringify(bodyData)
+      body: JSON.stringify(bodyData),
     });
 
     const result = await response.json();
-    console.log("✅ History saved:", result);
+    console.log("✅ Search saved:", result);
   } catch (error) {
     console.error("⚠️ Error saving history:", error);
   }
 }
 
 // ===============================
-// Render Pokémon Card
+// Render Pokémon card
 // ===============================
 function renderCard(data) {
   return `
@@ -122,14 +133,14 @@ function renderCard(data) {
       <h3>${data.name.toUpperCase()}</h3>
       <p><b>Height:</b> ${(data.height / 10).toFixed(1)} m</p>
       <p><b>Weight:</b> ${(data.weight / 10).toFixed(1)} kg</p>
-      <p><b>Type:</b> ${data.types.map(t => t.type.name).join(", ")}</p>
-      <p><b>Ability:</b> ${data.abilities.map(a => a.ability.name).join(", ")}</p>
+      <p><b>Type:</b> ${data.types.map((t) => t.type.name).join(", ")}</p>
+      <p><b>Ability:</b> ${data.abilities.map((a) => a.ability.name).join(", ")}</p>
     </div>
   `;
 }
 
 // ===============================
-// Search Event Listener
+// Search event
 // ===============================
 input.addEventListener("input", (e) => {
   const value = e.target.value;
