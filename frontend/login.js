@@ -1,4 +1,4 @@
-const STRAPI_URL = "http://54.236.25.34:1337";
+const STRAPI_URL = "http://54.224.55.129:1337";
 
 document.getElementById("loginForm").addEventListener("submit", async (e) => {
   e.preventDefault();
